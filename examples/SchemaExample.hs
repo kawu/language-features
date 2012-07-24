@@ -7,8 +7,7 @@ import qualified Data.Vector as V
 import qualified Data.Text.Lazy as L
 import qualified Data.Text.Lazy.IO as L
 
-import Data.Morphosyntax.Canonical (Word)
-import Data.Morphosyntax.Raw (toCanoData)
+import Data.Morphosyntax.Canonical (Word, word)
 import Text.Morphosyntax.Tagset (parseTagset)
 import Text.Morphosyntax.Plain (parsePlain)
 
@@ -33,8 +32,9 @@ schema sent = \k ->
 main = do
     [tagsetPath, inPath] <- getArgs
     tagset <- parseTagset tagsetPath <$> readFile tagsetPath
-    cano   <- map V.fromList . toCanoData tagset
-            . map (map fst) . parsePlain
+    cano   <- map V.fromList	-- ^ Vectorize
+            . map (map word)	-- ^ Discard disamb annotations
+            . parsePlain tagset
           <$> L.readFile inPath
     forM_ cano $ \sent -> do
         forM_ (runSchema schema sent) $ \word ->

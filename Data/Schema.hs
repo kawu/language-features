@@ -22,19 +22,3 @@ runSchema schema sent =
     runOn :: Int -> [[L.Text]]
     runOn = schema sent
     tag i = (L.pack (show i) `L.append`)
-
--- | Here is an example of how you can define your schema.  Note, that
--- you can ensure explicit subexpression elimination using standard haskell
--- functions, as well as memoize some of transitional results.
---
--- schema :: M.Morph w => Schema w
--- schema sent = \k ->
---     [ orth (k-1), orth k, orth (k+1)
---     , F.substr 3 $ orth k, F.substr 2 $ orth k
---     , shape (k-1), shape k
---     , packedShape (k-1), packedShape k ]
---   where
---     n = V.length sent
---     orth = F.orth sent
---     shape = F.memo n (F.shape . orth)
---     packedShape = F.pack . shape
