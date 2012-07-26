@@ -5,6 +5,7 @@ module Data.Feature
 ( Feature
 , memo
 , isBeg
+, known
 , orth
 , lowerOrth
 , withUpperOrth
@@ -43,6 +44,11 @@ isBeg s k
     | otherwise = ["I"] -- inside
   where
     n = V.length s
+
+known :: M.Morph w => Feature w
+known s k
+    | M.known (s V.! k) = ["1"]
+    | otherwise         = ["0"]
 
 orth :: M.Morph w => Feature w
 orth s k

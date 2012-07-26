@@ -19,8 +19,23 @@ import Data.Schema
 -- as well as memoize some of transitional results.
 schema :: Schema Word
 schema sent = \k ->
+--     [ F.prefix 1 $ orth k
+--     , F.prefix 2 $ orth k
+--     , F.prefix 3 $ orth k
+--     , F.suffix 1 $ orth k
+--     , F.suffix 2 $ orth k
+--     , F.suffix 3 $ orth k
+--     , F.known sent k
+--     , shape k
+--     , packedShape k ]
+--   where
+--     orth = F.orth sent
+--     shape = F.shape . orth
+--     packedShape = F.pack . shape
+schema sent = \k ->
     [ orth (k-1), orth k, orth (k+1)
     , F.substr 3 $ orth k, F.substr 2 $ orth k
+    , F.suffix 3 $ orth k
     , shape (k-1), shape k
     , packedShape (k-1), packedShape k ]
   where

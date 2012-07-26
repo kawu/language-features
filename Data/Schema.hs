@@ -6,7 +6,6 @@ module Data.Schema
 import qualified Data.Text.Lazy as L
 import qualified Data.Vector as V
 
-import qualified Data.Morphosyntax.Class as M
 import qualified Data.Feature as F
 
 type Schema w = V.Vector w -> Int -> [[L.Text]]
