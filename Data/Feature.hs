@@ -3,12 +3,15 @@
 
 module Data.Feature
 ( Feature
+, tag
+, iff
+, group
 , memo
-, isBeg
-, known
-, orth
-, lowerOrth
-, withUpperOrth
+
+, atG
+, atB
+, at
+
 , prefix
 , suffix
 , substr
@@ -24,10 +27,42 @@ import qualified Data.Vector as V
 import qualified Data.Char as C
 import qualified Data.Set as S
 
-import qualified Data.Morphosyntax.Class as M
+-- | We do not want to be dependent on any specific token
+-- representation, but rather allow any token type.
 
 type Feature w  = V.Vector w -> Int -> [L.Text]
 type Trafo      = [L.Text] -> [L.Text]
+
+-- | TODO: To many atX combinators, find better solution.
+atG :: V.Vector w -> (w -> a) -> Int -> Maybe a
+atG s f k
+    | k < 0 || k >= n = Nothing
+    | otherwise = Just $ f $ s V.! k
+  where
+    n = V.length s
+
+atB :: V.Vector w -> (w -> Bool) -> Int -> Bool
+atB s f k = case atG s f k of
+    Just x  -> x
+    Nothing -> False
+
+at :: V.Vector w -> (w -> [a]) -> Int -> [a]
+at s f k = case atG s f k of
+    Just x  -> x
+    Nothing -> []
+
+{-# INLINE tag #-}
+tag :: Int -> L.Text -> L.Text
+tag i = (L.pack (show i ++ ".") `L.append`)
+
+iff :: Bool -> [[L.Text]] -> [L.Text]
+iff False xss = []
+iff True  xss = concat
+    [ map (tag i) xs
+    | (i, xs) <- zip [0..] xss ]
+
+group :: [[L.Text]] -> [L.Text]
+group = concat
 
 memo :: Int -> (Int -> [a]) -> Int -> [a]
 memo n f = doIt 
@@ -36,36 +71,6 @@ memo n f = doIt
     doIt k
         | k < 0 || k >= n = []
         | otherwise = v V.! k
-
-isBeg :: Feature w
-isBeg s k
-    | k < 0 || k >= n = []
-    | k == 0    = ["B"] -- beginning 
-    | otherwise = ["I"] -- inside
-  where
-    n = V.length s
-
-known :: M.Morph w => Feature w
-known s k
-    | M.known (s V.! k) = ["1"]
-    | otherwise         = ["0"]
-
-orth :: M.Morph w => Feature w
-orth s k
-    | k < 0 || k >= n = []
-    | otherwise = [M.orth (s V.! k)]
-  where
-    n = V.length s
-
-lowerOrth :: M.Morph w => Feature w
-lowerOrth s = map L.toLower . orth s
-
-withUpperOrth :: M.Morph w => Feature w
-withUpperOrth s k = do
-    x <- orth s k
-    case L.find C.isUpper x of
-        Just _  -> [x]
-        Nothing -> []
 
 -- | Prefix(es) of given observation feature values.
 prefix :: Int -> Trafo
